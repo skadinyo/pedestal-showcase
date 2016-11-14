@@ -14,15 +14,29 @@
    [pedestal-showcase.routes.api :as api]
    ))
 
+#_(update-in context 
+                          [:response :session :counter]
+                          inc)
+
+(def click-counter
+  (interceptor
+   {:name ::click-counter
+    :leave (fn [{:keys [request] :as context}]
+             (let [x (get-in request [:session :counter])]
+               (assoc-in context
+                         [:response :session :counter]
+                         (if x (inc x) 1))))}))
 
 (def common-interceptors
-  [http/html-body 
+  [http/html-body
    (body-params/body-params)
    (p.rm/multipart-params)
+   click-counter
    #_(csrf/anti-forgery)])
 
 
 (defn inject-common-interceptors
+  "Injecting middleware in each route"
   [plain-routes common-interceptors]
   (->> plain-routes
        (mapv (fn [route]
@@ -32,6 +46,7 @@
 
 
 (defn plain-routes
+  "Combining home and api routes"
   [config]
   (->> (home/make-home-routes config)
        (into (api/make-api-routes config))))
@@ -45,6 +60,7 @@
 
 
 (defn app-routes
+  "Creating the actual routes"
   [config]
   (table/table-routes
    {}
