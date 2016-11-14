@@ -14,24 +14,10 @@
    [pedestal-showcase.routes.api :as api]
    ))
 
-#_(update-in context 
-                          [:response :session :counter]
-                          inc)
-
-(def click-counter
-  (interceptor
-   {:name ::click-counter
-    :leave (fn [{:keys [request] :as context}]
-             (let [x (get-in request [:session :counter])]
-               (assoc-in context
-                         [:response :session :counter]
-                         (if x (inc x) 1))))}))
-
 (def common-interceptors
   [http/html-body
    (body-params/body-params)
    (p.rm/multipart-params)
-   click-counter
    #_(csrf/anti-forgery)])
 
 
